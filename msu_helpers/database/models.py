@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
-
-from django.db import models
+import django
 from django.contrib import admin
-from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
 from django.core.mail import send_mail
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from .managers import UserManager
 from .db_constants import *
+from .managers import UserManager
+
+django.setup()
 
 
 class User(AbstractBaseUser, PermissionsMixin):
