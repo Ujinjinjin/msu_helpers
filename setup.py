@@ -1,12 +1,20 @@
-from setuptools import setup
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from setuptools import setup, find_packages
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     name='msu_helpers',
-    packages=['msu_helpers'],
+    packages=find_packages(),
     description='Package created for the university project to store common applications logic in one place. I am pretty sure that you do not need it',
-    version='0.1',
-    url='',  # TODO Paste here git link
-    author='Ujinjinjin',
-    author_email='ujinjinjin@outlook.com ',
-    keywords=['pip','msu_sqluniversity']
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    version='0.2.3',
+    url='https://github.com/Ujinjinjin/msu_helpers',
+    author='ujinjinjin',
+    author_email='gallkam@outlook.com ',
+    keywords=['pip','msu_sqluniversity'],
     )

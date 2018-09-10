@@ -1,2 +1,8 @@
 
 env/
+
+dist/
+
+build/
+
+msu_helpers\.egg-info/
