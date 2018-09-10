@@ -31,7 +31,7 @@ class UserDefaults:
         return datetime.utcnow()
 
 
-class PostDefaults:
+class ArticleDefaults:
     id = 0
     body = None
     user = None

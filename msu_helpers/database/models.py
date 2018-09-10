@@ -62,15 +62,15 @@ class UserAdmin(admin.ModelAdmin):
     exclude = ('password', 'last_login', 'user_permissions', 'groups')
 
 
-class Post(models.Model):
+class Article(models.Model):
     body = models.TextField(max_length=1000)
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = _('Post')
-        verbose_name_plural = _('Posts')
-        db_table = '_Post'
+        verbose_name = _('Article')
+        verbose_name_plural = _('Articles')
+        db_table = '_Article'
 
     def __str__(self):
         return f'{self.user.email} - {self.timestamp}'
@@ -89,49 +89,60 @@ class Post(models.Model):
 
     @classmethod
     def deserialize(cls, data: dict, save: bool = False):
-        post = Post()
+        article = Article()
 
-        post.pk = data.get('id', PostDefaults.id)
-        post.body = data.get('body', PostDefaults.body)
-        post.timestamp = data.get('timestamp', PostDefaults.timestamp)
+        article.pk = data.get('id', ArticleDefaults.id)
+        article.body = data.get('body', ArticleDefaults.body)
+        article.timestamp = data.get('timestamp', ArticleDefaults.timestamp)
 
-        user_dict: dict = data.get('user', PostDefaults.user)
+        user_dict: dict = data.get('user', ArticleDefaults.user)
         user_id: int = user_dict.get('id', UserDefaults.id)
 
         if user_id == 0:
-            raise ValueError('Can not create post without user_id')
+            raise ValueError('Can not create article without user_id')
         elif User.objects.filter(pk=user_id).count() == 0:
             raise ValueError('User with passed id does not exist')
 
-        post.user_id = user_id
-        post.user = User.objects.get(pk=user_id)
+        article.user_id = user_id
+        article.user = User.objects.get(pk=user_id)
 
         if save:
-            post.save()
+            article.save()
 
-        return post
+        return article
 
 
 class Reaction(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True)
 
     class Meta:
         verbose_name = _('Reaction')
         verbose_name_plural = _('Reactions')
-        unique_together = ('post', 'user')
+        unique_together = ('article', 'user')
         db_table = '_Reaction'
 
     def __str__(self):
-        return f'{self.user.email} liked {str(self.post)} post'
+        return f'{self.user.email} liked {str(self.article)} article'
+
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
 
 
 class AttachmentType(models.Model):
-    VIDEO = 'VID'
-    AUDIO = 'AUD'
-    IMAGE = 'IMG'
-    LINK = 'LNK'
-    DOC = 'DOC'
+    VIDEO = 0
+    AUDIO = 1
+    IMAGE = 2
+    LINK = 3
+    DOC = 4
     TYPE_CHOICES = (
         (VIDEO, 'Video'),
         (AUDIO, 'Audio'),
@@ -139,7 +150,7 @@ class AttachmentType(models.Model):
         (LINK, 'Link'),
         (DOC, 'Document')
     )
-    tag = models.CharField(max_length=3, choices=TYPE_CHOICES, default=DOC, unique=True)
+    tag = models.IntegerField(choices=TYPE_CHOICES, default=DOC, unique=True)
 
     class Meta:
         verbose_name = _('Attachment Type')
@@ -153,7 +164,7 @@ class AttachmentType(models.Model):
 class Attachment(models.Model):
     attachment_type = models.ForeignKey(AttachmentType, on_delete=models.DO_NOTHING)
     file = models.FileField(upload_to=f'media/attachments/{attachment_type}/')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('Attachment')
@@ -166,7 +177,7 @@ class Attachment(models.Model):
 
 class Comment(models.Model):
     body = models.TextField(max_length=150)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
@@ -176,7 +187,7 @@ class Comment(models.Model):
         db_table = '_Comment'
 
     def __str__(self):
-        return f"{self.user.email} commented under {self.post.user.email}'s post at {self.timestamp}"
+        return f"{self.user.email} commented under {self.article.user.email}'s article at {self.timestamp}"
 
 
 class Mention(models.Model):
