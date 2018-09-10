@@ -11,7 +11,7 @@ BASIC_TYPES = ['list', 'str', 'dict', 'int', 'float', 'tuple', 'bool', 'NoneType
 
 class CommonResponse(Generic[T]):
 
-    def __init__(self, data: T, status: str = Status.OK, code: int = Code.OK, message: str = None):
+    def __init__(self, data: T, status: str = Status.SUCCESS, code: int = Code.SUCCESS, message: str = None):
         self.status: str = status
         self.code: int = code
         self.message: str = message
@@ -37,12 +37,12 @@ class CommonResponse(Generic[T]):
         }
 
     @property
-    def as_json(self):
+    def json_response(self) -> JsonResponse:
         return JsonResponse(self.serialized)
 
     @classmethod
-    def ok(cls, data: T, code: int = Code.OK, message: str = None):
-        return CommonResponse(data, Status.OK, code, message)
+    def success(cls, data: T = None, code: int = Code.SUCCESS, message: str = None):
+        return CommonResponse(data, Status.SUCCESS, code, message)
 
     @classmethod
     def failed(cls, code: int = Code.FAILED, message: str = None):

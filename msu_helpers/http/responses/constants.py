@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 class Status:
-    OK: str = 'Ok'
+    SUCCESS: str = 'Success'
     FAILED: str = 'Failed'
 
 
 class Code:
-    OK: int = 200
+    SUCCESS: int = 200
     FAILED: int = 400
     UNAUTHORIZED: int = 401
     FORBIDDEN: int = 403
