@@ -6,3 +6,5 @@ dist/
 build/
 
 msu_helpers\.egg-info/
+
+\.vscode/
