@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
+
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import PermissionsMixin
@@ -9,19 +11,20 @@ from django.core.mail import send_mail
 from django.utils.translation import ugettext_lazy as _
 
 from .managers import UserManager
+from .db_constants import *
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    first_name = models.CharField(max_length=64, default='Funny')
-    last_name = models.CharField(max_length=64, default='Bunny')
-    study_group = models.CharField(max_length=10, default='BNBO-01-15')
+    first_name = models.CharField(max_length=64, default=UserDefaults.first_name)
+    last_name = models.CharField(max_length=64, default=UserDefaults.last_name)
+    study_group = models.CharField(max_length=10, default=UserDefaults.study_group)
     birthday = models.DateField(auto_now_add=True)
     about = models.TextField(max_length=1000, null=True, blank=True)
     profile_pic = models.ImageField(upload_to='media/users/profile_pics', null=True, blank=True)
     email = models.EmailField(max_length=100, unique=True)
-    lang = models.CharField(max_length=5, default='ru-ru')
-    activated = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False, editable=False)
+    lang = models.CharField(max_length=5, default=UserDefaults.lang)
+    activated = models.BooleanField(default=UserDefaults.activated)
+    is_staff = models.BooleanField(default=UserDefaults.is_staff, editable=False)
 
     objects = UserManager()
 
@@ -45,6 +48,55 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        return {
+            'id': self.pk,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'study_group': self.study_group,
+            'birthday': self.birthday.strftime(Utils.DATETIME_FORMAT),
+            'about': self.about,
+            'profile_pic': self.profile_pic,
+            'email': self.email,
+            'lang': self.lang,
+            'activated': self.activated,
+            'is_staff': self.is_staff,
+        }
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        user = User()
+
+        user.pk = data.get('id', UserDefaults.id)
+        user.first_name = data.get('first_name', UserDefaults.first_name)
+        user.last_name = data.get('last_name', UserDefaults.last_name)
+        user.study_group = data.get('study_group', UserDefaults.study_group)
+        user.about = data.get('about', UserDefaults.about)
+        user.profile_pic = data.get('profile_pic', UserDefaults.profile_pic)
+        user.email = data.get('email', UserDefaults.email)
+        user.lang = data.get('lang', UserDefaults.lang)
+        user.activated = data.get('activated', UserDefaults.activated)
+        user.is_staff = data.get('is_staff', UserDefaults.is_staff)
+
+        birthday = data.get('birthday', UserDefaults.birthday)
+        password = data.get('password', None)
+
+        if password is None or user.email is None:
+            raise ValueError('Can not create user without email or password')
+
+        if birthday is not None:
+            user.birthday = datetime.strptime(birthday, Utils.DATETIME_FORMAT)
+
+        user.set_password(password)
+        if save:
+            user.save()
+
+        return user
+
 
 class UserAdmin(admin.ModelAdmin):
     exclude = ('password', 'last_login', 'user_permissions', 'groups')
@@ -62,6 +114,42 @@ class Post(models.Model):
 
     def __str__(self):
         return f'{self.user.email} - {self.timestamp}'
+
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        return {
+            'id': self.pk,
+            'body': self.body,
+            'timestamp': self.timestamp.strftime(Utils.DATETIME_FORMAT),
+            'user': self.user.serialized,
+        }
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        post = Post()
+
+        post.pk = data.get('id', PostDefaults.id)
+        post.body = data.get('body', PostDefaults.body)
+        post.timestamp = data.get('timestamp', PostDefaults.timestamp)
+
+        user_dict: dict = data.get('user', PostDefaults.user)
+        user_id: int = user_dict.get('id', UserDefaults.id)
+
+        if user_id == 0:
+            raise ValueError('Can not create post without user_id')
+        elif User.objects.filter(pk=user_id).count() == 0:
+            raise ValueError('User with passed id does not exist')
+
+        post.user_id = user_id
+        post.user = User.objects.get(pk=user_id)
+
+        if save:
+            post.save()
+
+        return post
 
 
 class Reaction(models.Model):

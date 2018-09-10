@@ -8,3 +8,5 @@ build/
 msu_helpers\.egg-info/
 
 \.vscode/
+
+\.idea/
