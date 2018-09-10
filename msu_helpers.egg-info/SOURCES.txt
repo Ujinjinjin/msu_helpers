@@ -1,0 +1,8 @@
+README.md
+setup.cfg
+setup.py
+msu_helpers/__init__.py
+msu_helpers.egg-info/PKG-INFO
+msu_helpers.egg-info/SOURCES.txt
+msu_helpers.egg-info/dependency_links.txt
+msu_helpers.egg-info/top_level.txt
