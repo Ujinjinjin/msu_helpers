@@ -10,3 +10,5 @@ msu_helpers\.egg-info/
 \.vscode/
 
 \.idea/
+
+**/__pycache__/
