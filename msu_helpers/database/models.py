@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from django.core.mail import send_mail
-from django.core import serializers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from .seriazilers import UserSerializer
 
 from .db_constants import *
 
@@ -44,6 +42,7 @@ class User(models.Model):
         return self._serialize()
 
     def _serialize(self) -> dict:
+        from .serializers import UserSerializer
         return UserSerializer(self).data
 
 
