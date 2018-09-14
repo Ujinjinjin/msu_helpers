@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from django.contrib import admin
 from django.core.mail import send_mail
+from django.core import serializers
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -43,23 +43,7 @@ class User(models.Model):
         return self._serialize()
 
     def _serialize(self) -> dict:
-        return {
-            'id': self.pk,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'study_group': self.study_group,
-            'birthday': self.birthday.strftime(Utils.DATETIME_FORMAT),
-            'about': self.about,
-            'profile_pic': self.profile_pic,
-            'email': self.email,
-            'lang': self.lang,
-            'activated': self.activated,
-            'is_staff': self.is_staff,
-        }
-
-
-class UserAdmin(admin.ModelAdmin):
-    exclude = ('password', 'last_login', 'user_permissions', 'groups')
+        return serializers.serialize('json', self)
 
 
 class Article(models.Model):
