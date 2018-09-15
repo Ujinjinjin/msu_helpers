@@ -7,6 +7,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from .db_constants import *
 
+__all__ = ['User', 'Article', 'Reaction', 'AttachmentType', 'Attachment', 'Comment', 'Mention', 'Chat', 'ChatMember',
+           'Message', 'UserMessage', ]
+
 
 class User(models.Model):
     first_name = models.CharField(max_length=64, default=UserDefaults.first_name)

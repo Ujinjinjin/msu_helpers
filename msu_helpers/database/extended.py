@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
+
 from django.contrib import admin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -8,8 +10,11 @@ from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from msu_helpers.database.db_constants import Utils
 from .db_constants import *
 from .managers import UserManager
+
+__all__ = ['User', 'UserAdmin', ]
 
 
 class User(AbstractBaseUser, PermissionsMixin):

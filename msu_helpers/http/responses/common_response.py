@@ -5,6 +5,8 @@ from typing import TypeVar, Generic
 from django.http.response import JsonResponse
 from ..http_constants import Status, Code
 
+__all__ = ['CommonResponse']
+
 T = TypeVar('T')
 BASIC_TYPES = ['list', 'str', 'dict', 'int', 'float', 'tuple', 'bool', 'NoneType']
 
