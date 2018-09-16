@@ -40,8 +40,7 @@ class StudyGroup(models.Model):
             from .serializers import StudyGroupSerializer
             serializer = StudyGroupSerializer(data=data)
             if serializer.is_valid():
-                pass
-                # return StudyGroup(**serializer.validated_data)
+                return StudyGroup(**serializer.validated_data)
             else:
                 raise ValueError('Data is not valid')
 
