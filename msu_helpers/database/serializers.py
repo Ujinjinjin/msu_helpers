@@ -18,3 +18,4 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['pk', 'first_name', 'last_name', 'study_group', 'birthday', 'about', 'profile_pic', 'email', 'lang',
                   'activated', 'is_staff', ]
+        depth = 1
