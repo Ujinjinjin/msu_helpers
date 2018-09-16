@@ -34,8 +34,8 @@ class SerializableModel(models.Model):
 
     @classmethod
     def _get_serializer(cls, data):
-        serializers = importlib.import_module('.', 'database.serializers')
-        serializer_class = serializers.get(cls.__class__)
+        from . import serializers
+        serializer_class = serializers.get(str(cls.__class__))
         if isinstance(data, cls):
             return serializer_class(data)
         elif isinstance(data, dict):
