@@ -4,52 +4,12 @@
 from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-import importlib
 
+from .base import SerializableModel
 from .db_constants import *
 
-__all__ = ['StudyGroup', 'Language', 'User', 'Article', 'Reaction', 'AttachmentType', 'FileExtension', 'Attachment',
-           'Comment', 'Mention', 'Chat', 'ChatMember', 'Message', 'UserMessage', ]
-
-
-class SerializableModel(models.Model):
-
-    _serializer = None
-
-    class Meta:
-        abstract = True
-
-    @property
-    def serialized(self) -> dict:
-        if self.serializer.is_valid():
-            return self.serializer.data
-        else:
-            raise ValueError('Invalid data')
-
-    @property
-    def serializer(self):
-        if self._serializer is None:
-            self._serializer = self._get_serializer(self)
-        return self._serializer
-
-    @classmethod
-    def _get_serializer(cls, data):
-        from . import serializers
-        serializer_class = serializers.get(str(cls.__class__))
-        if isinstance(data, cls):
-            return serializer_class(data)
-        elif isinstance(data, dict):
-            return serializer_class(data=data)
-        else:
-            raise TypeError('"data" should be dict or StudyGroup')
-
-    @classmethod
-    def deserialize(cls, data: dict):
-        serializer = cls._get_serializer(data)
-        if serializer.is_valid():
-            return StudyGroup(**serializer.validated_data)
-        else:
-            raise ValueError('Invalid data')
+__all__ = ('StudyGroup', 'Language', 'User', 'Article', 'Reaction', 'AttachmentType', 'FileExtension', 'Attachment',
+           'Comment', 'Mention', 'Chat', 'ChatMember', 'Message', 'UserMessage')
 
 
 class StudyGroup(SerializableModel):
@@ -65,13 +25,13 @@ class StudyGroup(SerializableModel):
 
 
 class Language(SerializableModel):
-    RU_RU = 1
-    EN_US = 2
+    RU_RU = Language.RU_RU
+    EN_US = Language.RU_RU
     LANG_CHOICES = (
-        (RU_RU, Language.RU_RU),
-        (EN_US, Language.EN_US)
+        (RU_RU, 'Русский'),
+        (EN_US, 'English')
     )
-    code = models.SmallIntegerField(choices=LANG_CHOICES, default=RU_RU, unique=True)
+    code = models.CharField(choices=LANG_CHOICES, max_length=5, default=RU_RU, unique=True)
 
     class Meta:
         verbose_name = _('Language')
@@ -79,7 +39,7 @@ class Language(SerializableModel):
         db_table = '_Language'
 
     def __str__(self):
-        return f'{self.get_code_display()}'
+        return f'{self.code}'
 
 
 class User(SerializableModel):
@@ -112,7 +72,7 @@ class User(SerializableModel):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
-class Article(models.Model):
+class Article(SerializableModel):
     body = models.TextField(max_length=1000)
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -126,7 +86,7 @@ class Article(models.Model):
         return f'{self.user.email} - {self.timestamp}'
 
 
-class Reaction(models.Model):
+class Reaction(SerializableModel):
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True)
 
@@ -140,20 +100,8 @@ class Reaction(models.Model):
         return f'{self.user.email} liked {str(self.article)} article'
 
 
-class AttachmentType(models.Model):
-    VIDEO = 1
-    AUDIO = 2
-    IMAGE = 3
-    LINK = 4
-    DOC = 5
-    TYPE_CHOICES = (
-        (VIDEO, 'Video'),
-        (AUDIO, 'Audio'),
-        (IMAGE, 'Image'),
-        (LINK, 'Link'),
-        (DOC, 'Document')
-    )
-    tag = models.IntegerField(choices=TYPE_CHOICES, default=DOC, unique=True)
+class AttachmentType(SerializableModel):
+    tag = models.CharField(max_length='15', unique=True)
 
     class Meta:
         verbose_name = _('Attachment Type')
@@ -161,10 +109,10 @@ class AttachmentType(models.Model):
         db_table = '_AttachmentType'
 
     def __str__(self):
-        return f'{self.get_tag_display()}'
+        return f'{self.tag}'
 
 
-class FileExtension(models.Model):
+class FileExtension(SerializableModel):
     name = models.CharField(max_length=10, null=False, blank=False, unique=True)
 
     class Meta:
@@ -173,10 +121,10 @@ class FileExtension(models.Model):
         db_table = '_FileExtension'
 
     def __str__(self):
-        return self.name
+        return f'{self.name}'
 
 
-class Attachment(models.Model):
+class Attachment(SerializableModel):
     attachment_type = models.ForeignKey(AttachmentType, on_delete=models.DO_NOTHING)
     file = models.FileField(upload_to=f'media/attachments/{attachment_type}/')
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
@@ -192,7 +140,7 @@ class Attachment(models.Model):
         return f'{self.file.name}'
 
 
-class Comment(models.Model):
+class Comment(SerializableModel):
     body = models.TextField(max_length=150)
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -207,7 +155,7 @@ class Comment(models.Model):
         return f"{self.user.email} commented under {self.article.user.email}'s article at {self.timestamp}"
 
 
-class Mention(models.Model):
+class Mention(SerializableModel):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
     had_seen = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
@@ -222,7 +170,7 @@ class Mention(models.Model):
         return f'{self.comment.user.email} mentioned {self.user.email} in his comment ({self.had_seen})'
 
 
-class Chat(models.Model):
+class Chat(SerializableModel):
     class Meta:
         verbose_name = _('Chat')
         verbose_name_plural = _('Chats')
@@ -232,8 +180,8 @@ class Chat(models.Model):
         return f'{self.pk}'
 
 
-class ChatMember(models.Model):
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+class ChatMember(SerializableModel):
+    chat = models.ForeignKey(Chat, related_name='chat_members', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
     class Meta:
@@ -246,9 +194,9 @@ class ChatMember(models.Model):
         return f'Chat: {self.chat.pk}; User: {self.user.email}'
 
 
-class Message(models.Model):
+class Message(SerializableModel):
     body = models.TextField(max_length=150)
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    chat = models.ForeignKey(Chat, related_name='messages', on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -261,7 +209,7 @@ class Message(models.Model):
         return f'Chat: {self.chat.pk}; Sender: {self.sender.pk}'
 
 
-class UserMessage(models.Model):
+class UserMessage(SerializableModel):
     message = models.ForeignKey(Message, on_delete=models.DO_NOTHING)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
