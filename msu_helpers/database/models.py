@@ -52,9 +52,6 @@ class SerializableModel(models.Model):
 class StudyGroup(SerializableModel):
     code = models.CharField(max_length=10, default=UserDefaults.study_group, unique=True)
 
-    from .serializers import StudyGroupSerializer as SerializerClass
-    _serializer_class = SerializerClass
-
     class Meta:
         verbose_name = _('StudyGroup')
         verbose_name_plural = _('StudyGroups')
