@@ -63,7 +63,7 @@ class Language(models.Model):
         db_table = '_Language'
 
     def __str__(self):
-        return f'{self.get_tag_display()}'
+        return f'{self.get_code_display()}'
 
 
 class User(models.Model):
