@@ -2,9 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from rest_framework import serializers
-from .models import User
+from .models import *
 
-__all__ = ['UserSerializer']
+__all__ = ['StudyGroupSerializer', 'UserSerializer']
+
+
+class StudyGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudyGroup
+        fields = ['pk', 'name']
 
 
 class UserSerializer(serializers.ModelSerializer):

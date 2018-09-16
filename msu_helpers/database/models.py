@@ -7,19 +7,68 @@ from django.utils.translation import ugettext_lazy as _
 
 from .db_constants import *
 
-__all__ = ['User', 'Article', 'Reaction', 'AttachmentType', 'Attachment', 'Comment', 'Mention', 'Chat', 'ChatMember',
-           'Message', 'UserMessage', ]
+__all__ = ['StudyGroup', 'Language', 'User', 'Article', 'Reaction', 'AttachmentType', 'FileExtension', 'Attachment',
+           'Comment', 'Mention', 'Chat', 'ChatMember', 'Message', 'UserMessage', ]
+
+
+class StudyGroup(models.Model):
+    code = models.CharField(max_length=10, default=UserDefaults.study_group, unique=True)
+
+    class Meta:
+        verbose_name = _('StudyGroup')
+        verbose_name_plural = _('StudyGroups')
+        db_table = '_StudyGroup'
+
+        @property
+        def serialized(self) -> dict:
+            return self._serialize()
+
+        def _serialize(self) -> dict:
+            from .serializers import StudyGroupSerializer
+            return StudyGroupSerializer(self).data
+
+        @property
+        def serializer(self):
+            return self._get_serializer()
+
+        def _get_serializer(self):
+            from .serializers import StudyGroupSerializer
+            return StudyGroupSerializer(self)
+
+        @classmethod
+        def deserialize(cls, data: dict):
+            from .serializers import StudyGroupSerializer
+            serializer = StudyGroupSerializer(data=data)
+            if serializer.is_valid():
+                return StudyGroup(**serializer.validated_data)
+            else:
+                raise ValueError('Data is not valid')
+
+
+class Language(models.Model):
+    RU_RU = 1
+    EN_US = 2
+    LANG_CHOICES = (
+        (RU_RU, Language.RU_RU),
+        (EN_US, Language.EN_US)
+    )
+    code = models.SmallIntegerField(choices=LANG_CHOICES, default=RU_RU, unique=True)
+
+    class Meta:
+        verbose_name = _('Language')
+        verbose_name_plural = _('Languages')
+        db_table = '_Language'
 
 
 class User(models.Model):
     first_name = models.CharField(max_length=64, default=UserDefaults.first_name)
     last_name = models.CharField(max_length=64, default=UserDefaults.last_name)
-    study_group = models.CharField(max_length=10, default=UserDefaults.study_group)
+    study_group = models.ForeignKey(StudyGroup, on_delete=models.SET_NULL, null=True, blank=True)
     birthday = models.DateField(auto_now_add=True)
     about = models.TextField(max_length=1000, null=True, blank=True)
     profile_pic = models.ImageField(upload_to='media/users/profile_pics', null=True, blank=True)
     email = models.EmailField(max_length=100, unique=True)
-    lang = models.CharField(max_length=5, default=UserDefaults.lang)
+    lang = models.ForeignKey(Language, on_delete=models.DO_NOTHING)
     activated = models.BooleanField(default=UserDefaults.activated)
     is_staff = models.BooleanField(default=UserDefaults.is_staff, editable=False)
 
@@ -50,6 +99,9 @@ class User(models.Model):
 
     @property
     def serializer(self):
+        return self._get_serializer()
+
+    def _get_serializer(self):
         from .serializers import UserSerializer
         return UserSerializer(self)
 
@@ -130,11 +182,11 @@ class Reaction(models.Model):
 
 
 class AttachmentType(models.Model):
-    VIDEO = 0
-    AUDIO = 1
-    IMAGE = 2
-    LINK = 3
-    DOC = 4
+    VIDEO = 1
+    AUDIO = 2
+    IMAGE = 3
+    LINK = 4
+    DOC = 5
     TYPE_CHOICES = (
         (VIDEO, 'Video'),
         (AUDIO, 'Audio'),
@@ -152,11 +204,36 @@ class AttachmentType(models.Model):
     def __str__(self):
         return f'{self.get_tag_display()}'
 
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
+
+
+class FileExtension(models.Model):
+    name = models.CharField(max_length=10, null=False, blank=False, unique=True)
+
+    class Meta:
+        verbose_name = _('FileExtension')
+        verbose_name_plural = _('FileExtensions')
+        db_table = '_FileExtension'
+
+    def __str__(self):
+        return self.name
+
 
 class Attachment(models.Model):
     attachment_type = models.ForeignKey(AttachmentType, on_delete=models.DO_NOTHING)
     file = models.FileField(upload_to=f'media/attachments/{attachment_type}/')
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    original_name = models.CharField(max_length=100)
+    file_extension = models.ForeignKey(FileExtension, on_delete=models.DO_NOTHING)
 
     class Meta:
         verbose_name = _('Attachment')
@@ -165,6 +242,17 @@ class Attachment(models.Model):
 
     def __str__(self):
         return f'{self.file.name}'
+
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
 
 
 class Comment(models.Model):
@@ -181,6 +269,17 @@ class Comment(models.Model):
     def __str__(self):
         return f"{self.user.email} commented under {self.article.user.email}'s article at {self.timestamp}"
 
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
+
 
 class Mention(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
@@ -196,9 +295,19 @@ class Mention(models.Model):
     def __str__(self):
         return f'{self.comment.user.email} mentioned {self.user.email} in his comment ({self.had_seen})'
 
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
+
 
 class Chat(models.Model):
-
     class Meta:
         verbose_name = _('Chat')
         verbose_name_plural = _('Chats')
@@ -206,6 +315,17 @@ class Chat(models.Model):
 
     def __str__(self):
         return f'{self.pk}'
+
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
 
 
 class ChatMember(models.Model):
@@ -220,6 +340,17 @@ class ChatMember(models.Model):
 
     def __str__(self):
         return f'Chat: {self.chat.pk}; User: {self.user.email}'
+
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
 
 
 class Message(models.Model):
@@ -236,6 +367,17 @@ class Message(models.Model):
     def __str__(self):
         return f'Chat: {self.chat.pk}; Sender: {self.sender.pk}'
 
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
+
 
 class UserMessage(models.Model):
     message = models.ForeignKey(Message, on_delete=models.DO_NOTHING)
@@ -249,3 +391,14 @@ class UserMessage(models.Model):
 
     def __str__(self):
         return f'User: {self.user.pk}; Message: {self.message.pk}'
+
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
+
+    def _serialize(self) -> dict:
+        pass
+
+    @classmethod
+    def deserialize(cls, data: dict, save: bool = False):
+        pass
