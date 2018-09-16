@@ -101,7 +101,7 @@ class Reaction(SerializableModel):
 
 
 class AttachmentType(SerializableModel):
-    tag = models.CharField(max_length='15', unique=True)
+    tag = models.CharField(max_length=15, unique=True)
 
     class Meta:
         verbose_name = _('Attachment Type')
