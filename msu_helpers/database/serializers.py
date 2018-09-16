@@ -14,7 +14,7 @@ class StudyGroupSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    study_group = StudyGroupSerializer(source='study_group')
+    study_group = StudyGroupSerializer()
 
     class Meta:
         model = User
