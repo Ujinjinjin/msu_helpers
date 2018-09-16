@@ -16,6 +16,9 @@ class SerializableModel(models.Model):
 
     _serializer = None
 
+    class Meta:
+        abstract = True
+
     @property
     def serialized(self) -> dict:
         if self.serializer.is_valid():
