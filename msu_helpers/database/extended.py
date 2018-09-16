@@ -1,14 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
+
+from django.contrib import admin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from msu_helpers.database.db_constants import Utils
 from .db_constants import *
 from .managers import UserManager
+
+__all__ = ['User', 'UserAdmin', ]
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -79,14 +85,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         user.activated = data.get('activated', UserDefaults.activated)
         user.is_staff = data.get('is_staff', UserDefaults.is_staff)
 
-        birthday = data.get('birthday', UserDefaults.birthday)
+        user.birthday = datetime.strptime(data.get('birthday', UserDefaults.birthday), Utils.DATETIME_FORMAT)
         password = data.get('password', None)
 
         if password is None or user.email is None:
-            raise ValueError('Can not create user without email or password')
-
-        if birthday is not None:
-            user.birthday = datetime.strptime(birthday, Utils.DATETIME_FORMAT)
+            raise ValueError('User can not exist without email or password')
 
         user.set_password(password)
         if save:
@@ -95,3 +98,5 @@ class User(AbstractBaseUser, PermissionsMixin):
         return user
 
 
+class UserAdmin(admin.ModelAdmin):
+    exclude = ('password', 'last_login', 'user_permissions', 'groups')

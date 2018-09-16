@@ -3,6 +3,8 @@
 
 from datetime import datetime
 
+__all__ = ['Language', 'UserDefaults', 'ArticleDefaults', ]
+
 
 class Language:
     EN_US = 'en-us'
@@ -28,7 +30,7 @@ class UserDefaults:
 
     @property
     def birthday(self):
-        return datetime.utcnow()
+        return datetime.utcnow().strftime(Utils.DATETIME_FORMAT)
 
 
 class ArticleDefaults:
@@ -38,7 +40,7 @@ class ArticleDefaults:
 
     @property
     def timestamp(self):
-        return datetime.utcnow()
+        return datetime.utcnow().strftime(Utils.DATETIME_FORMAT)
 
 
 if __name__ == '__main__':

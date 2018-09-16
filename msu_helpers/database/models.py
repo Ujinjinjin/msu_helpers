@@ -1,25 +1,58 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from django.contrib import admin
 from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from .base import SerializableModel
 from .db_constants import *
 
+__all__ = ('StudyGroup', 'Language', 'User', 'Article', 'Reaction', 'AttachmentType', 'FileExtension', 'Attachment',
+           'Comment', 'Mention', 'Chat', 'ChatMember', 'Message', 'UserMessage')
 
-class User(models.Model):
-    first_name = models.CharField(max_length=64, default=UserDefaults.first_name)
-    last_name = models.CharField(max_length=64, default=UserDefaults.last_name)
-    study_group = models.CharField(max_length=10, default=UserDefaults.study_group)
+
+class StudyGroup(SerializableModel):
+    code = models.CharField(max_length=10, default=UserDefaults.study_group, unique=True)
+
+    class Meta:
+        verbose_name = _('StudyGroup')
+        verbose_name_plural = _('StudyGroups')
+        db_table = '_StudyGroup'
+
+    def __str__(self):
+        return f'{self.code}'
+
+
+class Language(SerializableModel):
+    RU_RU = Language.RU_RU
+    EN_US = Language.RU_RU
+    LANG_CHOICES = (
+        (RU_RU, 'Русский'),
+        (EN_US, 'English')
+    )
+    code = models.CharField(choices=LANG_CHOICES, max_length=5, default=RU_RU, unique=True)
+
+    class Meta:
+        verbose_name = _('Language')
+        verbose_name_plural = _('Languages')
+        db_table = '_Language'
+
+    def __str__(self):
+        return f'{self.code}'
+
+
+class User(SerializableModel):
+    first_name = models.CharField(max_length=64)
+    last_name = models.CharField(max_length=64)
+    study_group = models.ForeignKey(StudyGroup, on_delete=models.SET_NULL, null=True, blank=True)
     birthday = models.DateField(auto_now_add=True)
     about = models.TextField(max_length=1000, null=True, blank=True)
     profile_pic = models.ImageField(upload_to='media/users/profile_pics', null=True, blank=True)
     email = models.EmailField(max_length=100, unique=True)
-    lang = models.CharField(max_length=5, default=UserDefaults.lang)
-    activated = models.BooleanField(default=UserDefaults.activated)
-    is_staff = models.BooleanField(default=UserDefaults.is_staff, editable=False)
+    lang = models.ForeignKey(Language, on_delete=models.DO_NOTHING, null=True, blank=True)
+    activated = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False, editable=False)
 
     class Meta:
         verbose_name = _('User')
@@ -38,31 +71,8 @@ class User(models.Model):
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
-    @property
-    def serialized(self) -> dict:
-        return self._serialize()
 
-    def _serialize(self) -> dict:
-        return {
-            'id': self.pk,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'study_group': self.study_group,
-            'birthday': self.birthday.strftime(Utils.DATETIME_FORMAT),
-            'about': self.about,
-            'profile_pic': self.profile_pic,
-            'email': self.email,
-            'lang': self.lang,
-            'activated': self.activated,
-            'is_staff': self.is_staff,
-        }
-
-
-class UserAdmin(admin.ModelAdmin):
-    exclude = ('password', 'last_login', 'user_permissions', 'groups')
-
-
-class Article(models.Model):
+class Article(SerializableModel):
     body = models.TextField(max_length=1000)
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -75,44 +85,8 @@ class Article(models.Model):
     def __str__(self):
         return f'{self.user.email} - {self.timestamp}'
 
-    @property
-    def serialized(self) -> dict:
-        return self._serialize()
 
-    def _serialize(self) -> dict:
-        return {
-            'id': self.pk,
-            'body': self.body,
-            'timestamp': self.timestamp.strftime(Utils.DATETIME_FORMAT),
-            'user': self.user.serialized,
-        }
-
-    @classmethod
-    def deserialize(cls, data: dict, save: bool = False):
-        article = Article()
-
-        article.pk = data.get('id', ArticleDefaults.id)
-        article.body = data.get('body', ArticleDefaults.body)
-        article.timestamp = data.get('timestamp', ArticleDefaults.timestamp)
-
-        user_dict: dict = data.get('user', ArticleDefaults.user)
-        user_id: int = user_dict.get('id', UserDefaults.id)
-
-        if user_id == 0:
-            raise ValueError('Can not create article without user_id')
-        elif User.objects.filter(pk=user_id).count() == 0:
-            raise ValueError('User with passed id does not exist')
-
-        article.user_id = user_id
-        article.user = User.objects.get(pk=user_id)
-
-        if save:
-            article.save()
-
-        return article
-
-
-class Reaction(models.Model):
+class Reaction(SerializableModel):
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True)
 
@@ -125,32 +99,9 @@ class Reaction(models.Model):
     def __str__(self):
         return f'{self.user.email} liked {str(self.article)} article'
 
-    @property
-    def serialized(self) -> dict:
-        return self._serialize()
 
-    def _serialize(self) -> dict:
-        pass
-
-    @classmethod
-    def deserialize(cls, data: dict, save: bool = False):
-        pass
-
-
-class AttachmentType(models.Model):
-    VIDEO = 0
-    AUDIO = 1
-    IMAGE = 2
-    LINK = 3
-    DOC = 4
-    TYPE_CHOICES = (
-        (VIDEO, 'Video'),
-        (AUDIO, 'Audio'),
-        (IMAGE, 'Image'),
-        (LINK, 'Link'),
-        (DOC, 'Document')
-    )
-    tag = models.IntegerField(choices=TYPE_CHOICES, default=DOC, unique=True)
+class AttachmentType(SerializableModel):
+    tag = models.CharField(max_length='15', unique=True)
 
     class Meta:
         verbose_name = _('Attachment Type')
@@ -158,13 +109,27 @@ class AttachmentType(models.Model):
         db_table = '_AttachmentType'
 
     def __str__(self):
-        return f'{self.get_tag_display()}'
+        return f'{self.tag}'
 
 
-class Attachment(models.Model):
+class FileExtension(SerializableModel):
+    name = models.CharField(max_length=10, null=False, blank=False, unique=True)
+
+    class Meta:
+        verbose_name = _('FileExtension')
+        verbose_name_plural = _('FileExtensions')
+        db_table = '_FileExtension'
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+class Attachment(SerializableModel):
     attachment_type = models.ForeignKey(AttachmentType, on_delete=models.DO_NOTHING)
     file = models.FileField(upload_to=f'media/attachments/{attachment_type}/')
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    original_name = models.CharField(max_length=100)
+    file_extension = models.ForeignKey(FileExtension, on_delete=models.DO_NOTHING)
 
     class Meta:
         verbose_name = _('Attachment')
@@ -175,7 +140,7 @@ class Attachment(models.Model):
         return f'{self.file.name}'
 
 
-class Comment(models.Model):
+class Comment(SerializableModel):
     body = models.TextField(max_length=150)
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -190,7 +155,7 @@ class Comment(models.Model):
         return f"{self.user.email} commented under {self.article.user.email}'s article at {self.timestamp}"
 
 
-class Mention(models.Model):
+class Mention(SerializableModel):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
     had_seen = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
@@ -205,8 +170,7 @@ class Mention(models.Model):
         return f'{self.comment.user.email} mentioned {self.user.email} in his comment ({self.had_seen})'
 
 
-class Chat(models.Model):
-
+class Chat(SerializableModel):
     class Meta:
         verbose_name = _('Chat')
         verbose_name_plural = _('Chats')
@@ -216,8 +180,8 @@ class Chat(models.Model):
         return f'{self.pk}'
 
 
-class ChatMember(models.Model):
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+class ChatMember(SerializableModel):
+    chat = models.ForeignKey(Chat, related_name='chat_members', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
     class Meta:
@@ -230,9 +194,9 @@ class ChatMember(models.Model):
         return f'Chat: {self.chat.pk}; User: {self.user.email}'
 
 
-class Message(models.Model):
+class Message(SerializableModel):
     body = models.TextField(max_length=150)
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    chat = models.ForeignKey(Chat, related_name='messages', on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -245,7 +209,7 @@ class Message(models.Model):
         return f'Chat: {self.chat.pk}; Sender: {self.sender.pk}'
 
 
-class UserMessage(models.Model):
+class UserMessage(SerializableModel):
     message = models.ForeignKey(Message, on_delete=models.DO_NOTHING)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 

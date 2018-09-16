@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__all__ = ['Status', 'Code', ]
+
 
 class Status:
     SUCCESS: str = 'Success'
