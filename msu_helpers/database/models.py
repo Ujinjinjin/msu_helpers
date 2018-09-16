@@ -19,30 +19,30 @@ class StudyGroup(models.Model):
         verbose_name_plural = _('StudyGroups')
         db_table = '_StudyGroup'
 
-        @property
-        def serialized(self) -> dict:
-            return self._serialize()
+    @property
+    def serialized(self) -> dict:
+        return self._serialize()
 
-        def _serialize(self) -> dict:
-            from .serializers import StudyGroupSerializer
-            return StudyGroupSerializer(self).data
+    def _serialize(self) -> dict:
+        from .serializers import StudyGroupSerializer
+        return StudyGroupSerializer(self).data
 
-        @property
-        def serializer(self):
-            return self._get_serializer()
+    @property
+    def serializer(self):
+        return self._get_serializer()
 
-        def _get_serializer(self):
-            from .serializers import StudyGroupSerializer
-            return StudyGroupSerializer(self)
+    def _get_serializer(self):
+        from .serializers import StudyGroupSerializer
+        return StudyGroupSerializer(self)
 
-        @classmethod
-        def deserialize(cls, data: dict):
-            from .serializers import StudyGroupSerializer
-            serializer = StudyGroupSerializer(data=data)
-            if serializer.is_valid():
-                return StudyGroup(**serializer.validated_data)
-            else:
-                raise ValueError('Data is not valid')
+    @classmethod
+    def deserialize(cls, data: dict):
+        from .serializers import StudyGroupSerializer
+        serializer = StudyGroupSerializer(data=data)
+        if serializer.is_valid():
+            return StudyGroup(**serializer.validated_data)
+        else:
+            raise ValueError('Data is not valid')
 
 
 class Language(models.Model):
