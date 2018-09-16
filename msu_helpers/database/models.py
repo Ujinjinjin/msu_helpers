@@ -19,6 +19,9 @@ class StudyGroup(models.Model):
         verbose_name_plural = _('StudyGroups')
         db_table = '_StudyGroup'
 
+    def __str__(self):
+        return f'{self.code}'
+
     @property
     def serialized(self) -> dict:
         return self._serialize()
@@ -59,18 +62,21 @@ class Language(models.Model):
         verbose_name_plural = _('Languages')
         db_table = '_Language'
 
+    def __str__(self):
+        return f'{self.get_tag_display()}'
+
 
 class User(models.Model):
-    first_name = models.CharField(max_length=64, default=UserDefaults.first_name)
-    last_name = models.CharField(max_length=64, default=UserDefaults.last_name)
+    first_name = models.CharField(max_length=64)
+    last_name = models.CharField(max_length=64)
     study_group = models.ForeignKey(StudyGroup, on_delete=models.SET_NULL, null=True, blank=True)
     birthday = models.DateField(auto_now_add=True)
     about = models.TextField(max_length=1000, null=True, blank=True)
     profile_pic = models.ImageField(upload_to='media/users/profile_pics', null=True, blank=True)
     email = models.EmailField(max_length=100, unique=True)
-    lang = models.ForeignKey(Language, on_delete=models.DO_NOTHING)
-    activated = models.BooleanField(default=UserDefaults.activated)
-    is_staff = models.BooleanField(default=UserDefaults.is_staff, editable=False)
+    lang = models.ForeignKey(Language, on_delete=models.DO_NOTHING, null=True, blank=True)
+    activated = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False, editable=False)
 
     class Meta:
         verbose_name = _('User')

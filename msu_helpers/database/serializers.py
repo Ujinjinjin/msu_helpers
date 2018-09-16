@@ -10,7 +10,7 @@ __all__ = ['StudyGroupSerializer', 'UserSerializer']
 class StudyGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudyGroup
-        fields = ['pk', 'name']
+        fields = ['pk', 'code']
 
 
 class UserSerializer(serializers.ModelSerializer):
