@@ -4,6 +4,7 @@
 from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+import json
 
 from .db_constants import *
 
@@ -28,7 +29,7 @@ class StudyGroup(models.Model):
 
     def _serialize(self) -> dict:
         from .serializers import StudyGroupSerializer
-        return StudyGroupSerializer(self).data
+        return json.dumps(StudyGroupSerializer(self).data)
 
     @property
     def serializer(self):
@@ -101,7 +102,7 @@ class User(models.Model):
 
     def _serialize(self) -> dict:
         from .serializers import UserSerializer
-        return UserSerializer(self).data
+        return json.dumps(UserSerializer(self).data)
 
     @property
     def serializer(self):
