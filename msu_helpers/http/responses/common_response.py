@@ -47,6 +47,10 @@ class CommonResponse(Generic[T]):
         return CommonResponse(data, Status.SUCCESS, code, message).json_response
 
     @classmethod
+    def created(cls, code: int = Code.CREATED, message: str = None):
+        return CommonResponse(None, Status.SUCCESS, code, message).json_response
+
+    @classmethod
     def failed(cls, code: int = Code.FAILED, message: str = None):
         return CommonResponse(None, Status.FAILED, code, message).json_response
 

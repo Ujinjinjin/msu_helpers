@@ -11,6 +11,7 @@ class Status:
 
 class Code:
     SUCCESS: int = 200
+    CREATED: int = 201
     FAILED: int = 400
     UNAUTHORIZED: int = 401
     FORBIDDEN: int = 403
