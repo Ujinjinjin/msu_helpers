@@ -44,24 +44,24 @@ class CommonResponse(Generic[T]):
 
     @classmethod
     def success(cls, data: T = None, code: int = Code.SUCCESS, message: str = None):
-        return CommonResponse(data, Status.SUCCESS, code, message)
+        return CommonResponse(data, Status.SUCCESS, code, message).json_response
 
     @classmethod
     def failed(cls, code: int = Code.FAILED, message: str = None):
-        return CommonResponse(None, Status.FAILED, code, message)
+        return CommonResponse(None, Status.FAILED, code, message).json_response
 
     @classmethod
     def not_found(cls):
-        return CommonResponse(None, Status.FAILED, Code.NOT_FOUND, 'Not Found')
+        return CommonResponse(None, Status.FAILED, Code.NOT_FOUND, 'Not Found').json_response
 
     @classmethod
     def unauthorized(cls):
-        return CommonResponse(None, Status.FAILED, Code.UNAUTHORIZED, 'Unauthorized')
+        return CommonResponse(None, Status.FAILED, Code.UNAUTHORIZED, 'Unauthorized').json_response
 
     @classmethod
     def forbidden(cls):
-        return CommonResponse(None, Status.FAILED, Code.FORBIDDEN, 'Forbidden')
+        return CommonResponse(None, Status.FAILED, Code.FORBIDDEN, 'Forbidden').json_response
 
     @classmethod
     def server_error(cls):
-        return CommonResponse(None, Status.FAILED, Code.INTERNAL_SERVER_ERROR, 'Internal server error')
+        return CommonResponse(None, Status.FAILED, Code.INTERNAL_SERVER_ERROR, 'Internal server error').json_response
