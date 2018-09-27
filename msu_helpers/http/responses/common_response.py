@@ -55,17 +55,17 @@ class CommonResponse(Generic[T]):
         return CommonResponse(None, Status.FAILED, code, message).json_response
 
     @classmethod
-    def not_found(cls):
-        return CommonResponse(None, Status.FAILED, Code.NOT_FOUND, 'Not Found').json_response
+    def not_found(cls, message: str = 'Not Found'):
+        return CommonResponse(None, Status.FAILED, Code.NOT_FOUND, message).json_response
 
     @classmethod
-    def unauthorized(cls):
-        return CommonResponse(None, Status.FAILED, Code.UNAUTHORIZED, 'Unauthorized').json_response
+    def unauthorized(cls, message: str = 'Unauthorized'):
+        return CommonResponse(None, Status.FAILED, Code.UNAUTHORIZED, message).json_response
 
     @classmethod
-    def forbidden(cls):
-        return CommonResponse(None, Status.FAILED, Code.FORBIDDEN, 'Forbidden').json_response
+    def forbidden(cls, message: str = 'Forbidden'):
+        return CommonResponse(None, Status.FAILED, Code.FORBIDDEN, message).json_response
 
     @classmethod
-    def server_error(cls):
-        return CommonResponse(None, Status.FAILED, Code.INTERNAL_SERVER_ERROR, 'Internal server error').json_response
+    def server_error(cls, message: str = 'Internal server error'):
+        return CommonResponse(None, Status.FAILED, Code.INTERNAL_SERVER_ERROR, message).json_response
