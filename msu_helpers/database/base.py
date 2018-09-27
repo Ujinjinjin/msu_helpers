@@ -39,3 +39,10 @@ class SerializableModel(models.Model):
             return cls(**serializer.validated_data)
         else:
             raise ValueError('Invalid data')
+
+    @classmethod
+    def exists(cls, pk: int):
+        if pk is None or pk <= 0:
+            raise ValueError('Invalid primary key')
+
+        return cls.objects.filter(pk=pk).exists()
