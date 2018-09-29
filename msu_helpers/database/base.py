@@ -44,13 +44,16 @@ class SerializableModel(models.Model):
         attr_list: list = [attr for attr in dir(entry) if attr[0] != '_' and attr != 'id']
 
         for attr in attr_list:
-            entry.__setattr__(
-                attr,
-                data.get(
+            try:
+                entry.__setattr__(
                     attr,
-                    entry.__getattribute__(attr)
+                    data.get(
+                        attr,
+                        entry.__getattribute__(attr)
+                    )
                 )
-            )
+            except TypeError:
+                continue
 
         return entry
 
