@@ -65,10 +65,7 @@ class SerializableModel(models.Model):
         serializer_class = serializers.get(cls.__name__)
         serializer = serializer_class(data, many=True)
 
-        if serializer.is_valid():
-            return serializer.data
-
-        raise ValueError(f'Invalid {cls.__name__} {QuerySet.__name__}. {serializer.errors}')
+        return serializer.data
 
     @classmethod
     def exists(cls, pk: int):
