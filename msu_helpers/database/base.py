@@ -30,15 +30,29 @@ class SerializableModel(models.Model):
         elif isinstance(data, dict):
             return serializer_class(data=data)
         else:
-            raise TypeError('"data" should be dict or StudyGroup')
+            raise TypeError(f'"data" should be dict or {cls.__name__}')
 
     @classmethod
     def deserialize(cls, data: dict):
-        serializer = cls._get_serializer(data)
-        if serializer.is_valid():
-            return cls(**serializer.validated_data)
-        else:
-            raise ValueError('Invalid data')
+        # serializer = cls._get_serializer(data)
+        # if serializer.is_valid():
+        #     return cls(**serializer.validated_data)
+        # else:
+        #     raise ValueError('Invalid data')
+        pk: int = data.get('id', 0)
+        entry: cls = cls() if (pk <= 0 or not cls.exists(pk)) else cls.objects.get(pk=pk)
+        attr_list: list = [attr for attr in dir(entry) if attr[0] != '_' and attr != 'id']
+
+        for attr in attr_list:
+            entry.__setattr__(
+                attr,
+                data.get(
+                    attr,
+                    entry.__getattribute__(attr)
+                )
+            )
+
+        return entry
 
     @classmethod
     def exists(cls, pk: int):
