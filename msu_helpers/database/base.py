@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
+from django.db.models.query import QuerySet
 
 
 class SerializableModel(models.Model):
@@ -34,11 +35,6 @@ class SerializableModel(models.Model):
 
     @classmethod
     def deserialize(cls, data: dict):
-        # serializer = cls._get_serializer(data)
-        # if serializer.is_valid():
-        #     return cls(**serializer.validated_data)
-        # else:
-        #     raise ValueError('Invalid data')
         pk: int = data.get('id', 0)
         entry: cls = cls() if (pk <= 0 or not cls.exists(pk)) else cls.objects.get(pk=pk)
         attr_list: list = [attr for attr in dir(entry) if attr[0] != '_' and attr != 'id']
@@ -52,11 +48,24 @@ class SerializableModel(models.Model):
                         entry.__getattribute__(attr)
                     )
                 )
-            except (TypeError, AttributeError) as e:
-                print(f'An error occurred, during {cls.__name__} deserialization. {e}')
+            except (TypeError, AttributeError):
                 continue
+            except Exception as e:
+                print(f'An error occurred, during {cls.__name__} deserialization. {e}')
 
         return entry
+
+    @classmethod
+    def serialize_multiple(cls, data) -> dict:
+        if not isinstance(data, QuerySet):
+            raise TypeError(f'Invalid data type "{data.__class__.__name__}". '
+                            f'It should be a {QuerySet.__name__} of {cls.__name__}s.')
+
+        from . import serializers
+        serializer_class = serializers.get(cls.__name__)
+        serialized_data = serializer_class(data=data, many=True)
+
+        return serialized_data.data
 
     @classmethod
     def exists(cls, pk: int):
