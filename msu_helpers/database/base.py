@@ -52,7 +52,8 @@ class SerializableModel(models.Model):
                         entry.__getattribute__(attr)
                     )
                 )
-            except TypeError:
+            except (TypeError, AttributeError) as e:
+                print(f'An error occurred, during {cls.__name__} deserialization. {e}')
                 continue
 
         return entry
