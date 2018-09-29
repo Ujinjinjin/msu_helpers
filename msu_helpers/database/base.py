@@ -56,7 +56,7 @@ class SerializableModel(models.Model):
         return entry
 
     @classmethod
-    def serialize_multiple(cls, data: QuerySet) -> dict:
+    def serialize_multiple(cls, data: QuerySet) -> list:
         if not isinstance(data, QuerySet):
             raise TypeError(f'Invalid data type "{data.__class__.__name__}". '
                             f'It should be a {QuerySet.__name__} of {cls.__name__}s.')
@@ -65,7 +65,7 @@ class SerializableModel(models.Model):
         serializer_class = serializers.get(cls.__name__)
         serializer = serializer_class(data, many=True)
 
-        return serializer.data
+        return list(serializer.data)
 
     @classmethod
     def exists(cls, pk: int):
