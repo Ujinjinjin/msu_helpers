@@ -63,7 +63,7 @@ class SerializableModel(models.Model):
 
         from . import serializers
         serializer_class = serializers.get(cls.__name__)
-        serializer = serializer_class(data=data, many=True)
+        serializer = serializer_class(data, many=True)
 
         if serializer.is_valid():
             return serializer.data
