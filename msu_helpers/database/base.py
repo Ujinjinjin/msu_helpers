@@ -25,11 +25,11 @@ class SerializableModel(models.Model):
     @classmethod
     def _get_serializer(cls, data):
         from . import serializers
-        serializer_class = serializers.get(cls.__name__)
+        serializer = serializers.get(cls.__name__)
         if isinstance(data, cls):
-            return serializer_class(data)
+            return serializer(data)
         elif isinstance(data, dict):
-            return serializer_class(data=data)
+            return serializer(data=data)
         else:
             raise TypeError(f'"data" should be dict or {cls.__name__}')
 
@@ -63,12 +63,12 @@ class SerializableModel(models.Model):
 
         from . import serializers
         serializer_class = serializers.get(cls.__name__)
-        serialized_data = serializer_class(data=data, many=True)
+        serializer = serializer_class(data=data, many=True)
 
-        if serialized_data.is_valid():
-            return serialized_data.data
+        if serializer.is_valid():
+            return serializer.data
 
-        raise ValueError(f'Invalid {cls.__name__} {QuerySet.__name__}')
+        raise ValueError(f'Invalid {cls.__name__} {QuerySet.__name__}. {serializer.errors}')
 
     @classmethod
     def exists(cls, pk: int):
