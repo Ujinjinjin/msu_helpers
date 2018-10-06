@@ -4,7 +4,8 @@
 from rest_framework import serializers
 from .models import *
 
-__all__ = ('RoleSerializer', 'GroupSerializer', 'LanguageSerializer', 'UserSerializer', 'DisciplineSerializer',
+__all__ = ('RoleSerializer', 'SimplifiedGroupSerializer', 'LanguageSerializer', 'UserSerializer',
+           'GroupSerializer', 'DisciplineSerializer',
            'ClassroomSerializer', 'ArticleSerializer', 'ReactionSerializer', 'AttachmentTypeSerializer',
            'FileExtensionSerializer', 'AttachmentSerializer', 'CommentSerializer', 'MentionSerializer',
            'ChatMemberSerializer', 'MessageSerializer', 'ChatSerializer', 'UserMessageSerializer')
@@ -16,7 +17,7 @@ class RoleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
-class GroupSerializer(serializers.ModelSerializer):
+class SimplifiedGroupSerializer(serializers.ModelSerializer):
     role = RoleSerializer()
 
     class Meta:
@@ -31,13 +32,22 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    group = GroupSerializer()
+    group = SimplifiedGroupSerializer()
     lang = LanguageSerializer()
 
     class Meta:
         model = User
         fields = ('id', 'first_name', 'last_name', 'group', 'birthday', 'about', 'profile_pic', 'email', 'lang',
                   'activated')
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    users = UserSerializer(source='user_set', many=True)
+    role = RoleSerializer()
+
+    class Meta:
+        model = Group
+        fields = ('id', 'code', 'role')
 
 
 class DisciplineSerializer(serializers.ModelSerializer):
@@ -48,7 +58,7 @@ class DisciplineSerializer(serializers.ModelSerializer):
 
 class ClassroomSerializer(serializers.ModelSerializer):
     teacher = UserSerializer()
-    group = GroupSerializer()
+    group = SimplifiedGroupSerializer()
     discipline = DisciplineSerializer()
 
     class Meta:
