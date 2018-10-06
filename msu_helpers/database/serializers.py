@@ -18,6 +18,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
 
 class SimplifiedGroupSerializer(serializers.ModelSerializer):
+    """Simplified version of Group serializer to be used in other model serializers"""
     role = RoleSerializer()
 
     class Meta:
@@ -42,12 +43,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    """Extended version of Group serializer to be used on retrieving Group model"""
     users = UserSerializer(source='user_set', many=True)
     role = RoleSerializer()
 
     class Meta:
         model = Group
-        fields = ('id', 'code', 'role')
+        fields = ('id', 'code', 'role', 'users')
 
 
 class DisciplineSerializer(serializers.ModelSerializer):
