@@ -17,6 +17,8 @@ class RoleSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    role = RoleSerializer()
+
     class Meta:
         model = Group
         fields = ('id', 'code', 'role')
