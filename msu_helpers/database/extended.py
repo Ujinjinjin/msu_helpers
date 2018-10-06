@@ -8,7 +8,7 @@ from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from .models import StudyGroup, Language
+from .models import Group, Language
 from .managers import UserManager
 
 __all__ = ('AuthUser', 'UserAdmin')
@@ -17,7 +17,7 @@ __all__ = ('AuthUser', 'UserAdmin')
 class AuthUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
-    study_group = models.ForeignKey(StudyGroup, related_name='users', on_delete=models.SET_NULL, null=True, blank=True)
+    group = models.ForeignKey(Group, related_name='users', on_delete=models.SET_NULL, null=True, blank=True)
     birthday = models.DateField(auto_now_add=True)
     about = models.TextField(max_length=1000, null=True, blank=True)
     profile_pic = models.ImageField(upload_to='media/users/profile_pics', null=True, blank=True)
@@ -29,6 +29,10 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     _serializer = None
+
+    __fields__ = ('first_name', 'last_name', 'group_id', 'about',
+                  'profile_pic', 'email', 'lang_id', 'activated',)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -68,7 +72,7 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
         elif isinstance(data, dict):
             return serializer_class(data=data)
         else:
-            raise TypeError('"data" should be dict or StudyGroup')
+            raise TypeError('"data" should be dict or Group')
 
 
 class UserAdmin(admin.ModelAdmin):

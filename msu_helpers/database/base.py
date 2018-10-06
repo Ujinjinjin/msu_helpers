@@ -8,6 +8,17 @@ from django.db.models.query import QuerySet
 class SerializableModel(models.Model):
 
     _serializer = None
+    __deserializable_fields__: tuple = ('id',)
+
+    @property
+    def __fields__(self) -> tuple:
+        return self.__deserializable_fields__
+
+    @__fields__.setter
+    def __fields__(self, fields: tuple):
+        fields += ('id',)
+        distinct_fields: set = set(fields)
+        self.__deserializable_fields__ = distinct_fields
 
     class Meta:
         abstract = True
@@ -37,9 +48,9 @@ class SerializableModel(models.Model):
     def deserialize(cls, data: dict):
         pk: int = data.get('id', 0)
         entry: cls = cls() if (pk <= 0 or not cls.exists(pk)) else cls.objects.get(pk=pk)
-        attr_list: list = [attr for attr in dir(entry) if attr[0] != '_' and attr != 'id']
+        # attr_list: list = [attr for attr in dir(entry) if attr[0] != '_' and attr != 'id']
 
-        for attr in attr_list:
+        for attr in cls.__fields__:
             try:
                 entry.__setattr__(
                     attr,

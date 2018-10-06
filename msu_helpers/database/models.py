@@ -8,17 +8,34 @@ from django.utils.translation import ugettext_lazy as _
 from .base import SerializableModel
 from .db_constants import *
 
-__all__ = ('StudyGroup', 'Language', 'User', 'Article', 'Reaction', 'AttachmentType', 'FileExtension', 'Attachment',
-           'Comment', 'Mention', 'Chat', 'ChatMember', 'Message', 'UserMessage')
+__all__ = ('Group', 'Language', 'Role', 'User', 'Article', 'Reaction', 'AttachmentType', 'FileExtension',
+           'Attachment', 'Comment', 'Mention', 'Chat', 'ChatMember', 'Message', 'UserMessage')
 
 
-class StudyGroup(SerializableModel):
-    code = models.CharField(max_length=10, default=UserDefaults.study_group, unique=True)
+class Role(SerializableModel):
+    name = models.CharField(max_length=20, unique=True)
+
+    __fields__ = ('name',)
 
     class Meta:
-        verbose_name = _('StudyGroup')
-        verbose_name_plural = _('StudyGroups')
-        db_table = '_StudyGroup'
+        verbose_name = _('Role')
+        verbose_name_plural = _('Roles')
+        db_table = '_Role'
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+class Group(SerializableModel):
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    code = models.CharField(max_length=10, unique=True)
+
+    __fields__ = ('code', 'role_id')
+
+    class Meta:
+        verbose_name = _('Group')
+        verbose_name_plural = _('Groups')
+        db_table = '_Group'
 
     def __str__(self):
         return f'{self.code}'
@@ -33,6 +50,8 @@ class Language(SerializableModel):
     )
     code = models.CharField(choices=LANG_CHOICES, max_length=5, default=RU_RU, unique=True)
 
+    __fields__ = ('code',)
+
     class Meta:
         verbose_name = _('Language')
         verbose_name_plural = _('Languages')
@@ -45,7 +64,7 @@ class Language(SerializableModel):
 class User(SerializableModel):
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
-    study_group = models.ForeignKey(StudyGroup, on_delete=models.SET_NULL, null=True, blank=True)
+    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
     birthday = models.DateField(auto_now_add=True)
     about = models.TextField(max_length=1000, null=True, blank=True)
     profile_pic = models.ImageField(upload_to='media/users/profile_pics', null=True, blank=True)
@@ -54,13 +73,16 @@ class User(SerializableModel):
     activated = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False, editable=False)
 
+    __fields__ = ('first_name', 'last_name', 'group_id', 'about',
+                  'profile_pic', 'email', 'lang_id', 'activated',)
+
     class Meta:
         verbose_name = _('User')
         verbose_name_plural = _('Users')
         db_table = '_User'
 
     def __str__(self):
-        return f'{self.email} - {self.first_name} {self.last_name}'
+        return f'{self.email} - {self.first_name} {self.last_name} [{self.group.code}]'
 
     def get_full_name(self):
         return '{} {}'.format(self.first_name, self.last_name)
@@ -77,6 +99,8 @@ class Article(SerializableModel):
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    __fields__ = ('body', 'user_id',)
+
     class Meta:
         verbose_name = _('Article')
         verbose_name_plural = _('Articles')
@@ -89,6 +113,8 @@ class Article(SerializableModel):
 class Reaction(SerializableModel):
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True)
+
+    __fields__ = ('article_id', 'user_id',)
 
     class Meta:
         verbose_name = _('Reaction')
@@ -103,6 +129,8 @@ class Reaction(SerializableModel):
 class AttachmentType(SerializableModel):
     tag = models.CharField(max_length=15, unique=True)
 
+    __fields__ = ('tag',)
+
     class Meta:
         verbose_name = _('Attachment Type')
         verbose_name_plural = _('Attachment Types')
@@ -114,6 +142,8 @@ class AttachmentType(SerializableModel):
 
 class FileExtension(SerializableModel):
     name = models.CharField(max_length=10, null=False, blank=False, unique=True)
+
+    __fields__ = ('name',)
 
     class Meta:
         verbose_name = _('FileExtension')
@@ -131,6 +161,8 @@ class Attachment(SerializableModel):
     original_name = models.CharField(max_length=100)
     file_extension = models.ForeignKey(FileExtension, on_delete=models.DO_NOTHING)
 
+    __fields__ = ('attachment_type_id', 'article_id', 'original_name', 'file_extension_id',)
+
     class Meta:
         verbose_name = _('Attachment')
         verbose_name_plural = _('Attachments')
@@ -146,6 +178,8 @@ class Comment(SerializableModel):
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
+    __fields__ = ('body', 'article_id', 'user_id')
+
     class Meta:
         verbose_name = _('Comment')
         verbose_name_plural = _('Comments')
@@ -159,6 +193,8 @@ class Mention(SerializableModel):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
     had_seen = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+
+    __fields__ = ('comment_id', 'had_seen', 'user_id')
 
     class Meta:
         verbose_name = _('Mention')
@@ -184,6 +220,8 @@ class ChatMember(SerializableModel):
     chat = models.ForeignKey(Chat, related_name='chat_members', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
+    __fields__ = ('chat_id', 'user_id')
+
     class Meta:
         verbose_name = _('Chat Member')
         verbose_name_plural = _('Chat Members')
@@ -200,6 +238,8 @@ class Message(SerializableModel):
     sender = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    __fields__ = ('body', 'chat_id', 'sender_id')
+
     class Meta:
         verbose_name = _('Message')
         verbose_name_plural = _('Messages')
@@ -212,6 +252,8 @@ class Message(SerializableModel):
 class UserMessage(SerializableModel):
     message = models.ForeignKey(Message, on_delete=models.DO_NOTHING)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    __fields__ = ('message_id', 'user_id')
 
     class Meta:
         verbose_name = _('User Message')

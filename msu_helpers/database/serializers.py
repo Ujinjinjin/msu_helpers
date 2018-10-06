@@ -4,15 +4,22 @@
 from rest_framework import serializers
 from .models import *
 
-__all__ = ('StudyGroupSerializer', 'LanguageSerializer', 'UserSerializer', 'ArticleSerializer', 'ReactionSerializer',
-           'AttachmentTypeSerializer', 'FileExtensionSerializer', 'AttachmentSerializer', 'CommentSerializer',
-           'MentionSerializer', 'ChatMemberSerializer', 'MessageSerializer', 'ChatSerializer', 'UserMessageSerializer')
+__all__ = ('RoleSerializer', 'GroupSerializer', 'LanguageSerializer', 'UserSerializer', 'ArticleSerializer',
+           'ReactionSerializer', 'AttachmentTypeSerializer', 'FileExtensionSerializer', 'AttachmentSerializer',
+           'CommentSerializer', 'MentionSerializer', 'ChatMemberSerializer', 'MessageSerializer', 'ChatSerializer',
+           'UserMessageSerializer')
 
 
-class StudyGroupSerializer(serializers.ModelSerializer):
+class RoleSerializer(serializers.ModelSerializer):
     class Meta:
-        model = StudyGroup
-        fields = ('id', 'code')
+        model = Role
+        fields = ('id', 'name')
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ('id', 'code', 'role')
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -22,13 +29,13 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    study_group = StudyGroupSerializer()
+    group = GroupSerializer()
     lang = LanguageSerializer()
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'study_group', 'birthday', 'about', 'profile_pic', 'email', 'lang',
-                  'activated', 'is_staff')
+        fields = ('id', 'first_name', 'last_name', 'group', 'birthday', 'about', 'profile_pic', 'email', 'lang',
+                  'activated')
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -123,7 +130,8 @@ class UserMessageSerializer(serializers.ModelSerializer):
 
 
 _serializers: dict = {
-    'StudyGroup': StudyGroupSerializer,
+    'Role': RoleSerializer,
+    'Group': GroupSerializer,
     'Language': LanguageSerializer,
     'User': UserSerializer,
     'Article': ArticleSerializer,
