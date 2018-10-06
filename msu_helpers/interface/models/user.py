@@ -4,7 +4,7 @@ __all__ = ('UserSearchModel',)
 
 
 class UserSearchModel:
-    def __init__(self, value):
+    def __init__(self, value=''):
         self.parsed_data = re.match('(?P<first_name>[\wА-Яа-я]+)'
                                     '(/(?P<last_name>[\wА-Яа-я]+))?'
                                     '(/(?P<group_code>[\wА-Яа-я\-\d]{0,10}))?',
