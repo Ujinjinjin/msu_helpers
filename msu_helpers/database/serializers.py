@@ -4,14 +4,15 @@
 from rest_framework import serializers
 from .models import *
 
-__all__ = ('RoleSerializer', 'SimplifiedGroupSerializer', 'LanguageSerializer', 'UserSerializer',
-           'GroupSerializer', 'DisciplineSerializer',
+__all__ = ('SimplifiedRoleSerializer', 'SimplifiedGroupSerializer', 'RoleSerializer', 'LanguageSerializer',
+           'UserSerializer', 'GroupSerializer', 'DisciplineSerializer',
            'ClassroomSerializer', 'ArticleSerializer', 'ReactionSerializer', 'AttachmentTypeSerializer',
            'FileExtensionSerializer', 'AttachmentSerializer', 'CommentSerializer', 'MentionSerializer',
            'ChatMemberSerializer', 'MessageSerializer', 'ChatSerializer', 'UserMessageSerializer')
 
 
-class RoleSerializer(serializers.ModelSerializer):
+class SimplifiedRoleSerializer(serializers.ModelSerializer):
+    """Simplified version of Role serializer to be used in other model serializers"""
     class Meta:
         model = Role
         fields = ('id', 'name')
@@ -19,7 +20,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class SimplifiedGroupSerializer(serializers.ModelSerializer):
     """Simplified version of Group serializer to be used in other model serializers"""
-    role = RoleSerializer()
+    role = SimplifiedRoleSerializer()
 
     class Meta:
         model = Group
@@ -40,16 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'first_name', 'last_name', 'group', 'birthday', 'about', 'profile_pic', 'email', 'lang',
                   'activated')
-
-
-class GroupSerializer(serializers.ModelSerializer):
-    """Extended version of Group serializer to be used on retrieving Group model"""
-    users = UserSerializer(source='user_set', many=True)
-    role = RoleSerializer()
-
-    class Meta:
-        model = Group
-        fields = ('id', 'code', 'role', 'users')
 
 
 class DisciplineSerializer(serializers.ModelSerializer):
@@ -157,6 +148,30 @@ class UserMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserMessage
         fields = ('id', 'message', 'user')
+
+
+# region Nested serializers
+
+class RoleSerializer(serializers.ModelSerializer):
+    """Extended version of Role serializer to be used on retrieving Role model"""
+    groups = SimplifiedGroupSerializer(source='group_set', many=True)
+
+    class Meta:
+        model = Role
+        fields = ('id', 'name', 'groups')
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    """Extended version of Group serializer to be used on retrieving Group model"""
+    users = UserSerializer(source='user_set', many=True)
+    classrooms = ClassroomSerializer(source='classroom_set', many=True)
+    role = SimplifiedRoleSerializer()
+
+    class Meta:
+        model = Group
+        fields = ('id', 'code', 'role', 'users', 'classrooms')
+
+# endregion
 
 
 _serializers: dict = {
