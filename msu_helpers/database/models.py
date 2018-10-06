@@ -8,8 +8,8 @@ from django.utils.translation import ugettext_lazy as _
 from .base import SerializableModel
 from .db_constants import *
 
-__all__ = ('Group', 'Language', 'Role', 'User', 'Article', 'Reaction', 'AttachmentType', 'FileExtension',
-           'Attachment', 'Comment', 'Mention', 'Chat', 'ChatMember', 'Message', 'UserMessage')
+__all__ = ('Group', 'Language', 'Role', 'User', 'Discipline', 'Classroom', 'Article', 'Reaction', 'AttachmentType',
+           'FileExtension', 'Attachment', 'Comment', 'Mention', 'Chat', 'ChatMember', 'Message', 'UserMessage')
 
 
 class Role(SerializableModel):
@@ -94,12 +94,45 @@ class User(SerializableModel):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
+class Discipline(SerializableModel):
+    name = models.CharField(max_length=150, unique=True)
+
+    __fields__ = ('name',)
+
+    class Meta:
+        verbose_name = _('Discipline')
+        verbose_name_plural = _('Disciplines')
+        db_table = '_Discipline'
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+class Classroom(SerializableModel):
+    teacher = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    discipline = models.ForeignKey(Discipline, on_delete=models.DO_NOTHING)
+
+    __fields__ = ('teacher_id', 'group_id', 'discipline_id',)
+
+    class Meta:
+        verbose_name = _('Classroom')
+        verbose_name_plural = _('Classrooms')
+        db_table = '_Classroom'
+        unique_together = ('teacher', 'group', 'discipline')
+
+    def __str__(self):
+        return f'Discipline: {self.discipline.name}. Teacher: {self.teacher.get_full_name()}. Group: {self.group.code}'
+
+
 class Article(SerializableModel):
     body = models.TextField(max_length=1000)
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    classroom = models.ForeignKey(Classroom, on_delete=models.DO_NOTHING, null=True, blank=True)
+    private = models.BooleanField(default=False)
 
-    __fields__ = ('body', 'user_id',)
+    __fields__ = ('body', 'user_id', 'classroom_id', 'private')
 
     class Meta:
         verbose_name = _('Article')
