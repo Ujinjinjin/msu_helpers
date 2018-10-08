@@ -24,15 +24,15 @@ class Base:
             self.parsed_data = dict()
 
     @property
-    def int(self):
+    def int(self) -> list:
         return self.__int_fields__
 
     @property
-    def str(self):
+    def str(self) -> list:
         return self.__str_fields__
 
     @property
-    def bool(self):
+    def bool(self) -> list:
         return self.__bool_fields__
 
     def validate(self):
@@ -53,5 +53,14 @@ class Base:
 
             self.__setattr__(attr, bool(self.__getattribute__(attr)))
 
-    def __str__(self):
+        return self
+
+    def __str__(self) -> str:
         return f'{self.parsed_data}'
+
+    def __getattr__(self, item):
+        attr_list: list = self.int + self.str + self.bool
+        if 'p_' + item in attr_list:
+            return self.__getattribute__('p_' + item)
+
+        raise AttributeError
