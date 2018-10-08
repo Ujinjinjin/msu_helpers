@@ -4,5 +4,9 @@ __all__ = ('UserSearchModel',)
 
 
 class UserSearchModel(Base):
-    class Meta:
-        __str_fields__ = ('p_first_name', 'p_last_name', 'p_group_code')
+    __str_fields__ = ('first_name', 'last_name', 'group_code')
+
+    def __init__(self):
+        self.first_name: str = str()
+        self.last_name: str = str()
+        self.group_code: str = str()
