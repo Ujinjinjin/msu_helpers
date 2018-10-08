@@ -10,30 +10,22 @@ class Base:
     Every model attributed that can be passed in request should have name starts with 'p_'
     """
 
-    regex: str = ""
-    __int_fields__: tuple = tuple()
-    __str_fields__: tuple = tuple()
-    __bool_fields__: tuple = tuple()
-
-    def __init__(self, value=''):
-        param_match = re.match(self.regex, value)
-
-        if param_match:
-            self.parsed_data = param_match.groupdict()
-        else:
-            self.parsed_data = dict()
+    class Meta:
+        __int_fields__: tuple = tuple()
+        __str_fields__: tuple = tuple()
+        __bool_fields__: tuple = tuple()
 
     @property
     def int(self) -> tuple:
-        return self.__int_fields__
+        return self.Meta.__int_fields__
 
     @property
     def str(self) -> tuple:
-        return self.__str_fields__
+        return self.Meta.__str_fields__
 
     @property
     def bool(self) -> tuple:
-        return self.__bool_fields__
+        return self.Meta.__bool_fields__
 
     def validate(self):
         for attr in self.int:
@@ -56,11 +48,21 @@ class Base:
         return self
 
     def __str__(self) -> str:
-        return f'{self.parsed_data}'
+        return f'{self.__dict__}'
+
+    @property
+    def attributes(self):
+        return self.int + self.str + self.bool
 
     def __getattr__(self, item):
-        attr_list: tuple = self.int + self.str + self.bool
-        if 'p_' + item in attr_list:
+        if 'p_' + item in self.attributes:
             return self.__getattribute__('p_' + item)
 
         raise AttributeError
+
+    @classmethod
+    def deserialize(cls, data: dict):
+        model = cls()
+        for attr in model.attributes:
+            model.__setattr__(attr, data.get(attr, None))
+        model.validate()
