@@ -3,7 +3,7 @@ from .base import *
 __all__ = ('UserSearchModel',)
 
 
-class UserSearchModel(Base):
+class UserSearchModel(BaseQueryModel):
     __str_fields__ = ('first_name', 'last_name', 'group_code')
 
     def __init__(self):

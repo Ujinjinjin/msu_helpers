@@ -1,10 +1,10 @@
 import re
 
-__all__ = ('Base',)
+__all__ = ('BaseQueryModel',)
 
 
-class Base:
-    """Base request model, containing logic shared between other request models."""
+class BaseQueryModel:
+    """BaseQueryModel request model, containing logic shared between other request models."""
 
     __int_fields__: tuple = tuple()
     __str_fields__: tuple = tuple()
