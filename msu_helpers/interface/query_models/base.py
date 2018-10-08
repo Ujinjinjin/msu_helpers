@@ -52,7 +52,7 @@ class Base:
 
     @property
     def attributes(self):
-        return self.int + self.str + self.bool
+        return self.Meta.__int_fields__ + self.Meta.__str_fields__ + self.Meta.__bool_fields__
 
     def __getattr__(self, item):
         attributes: tuple = self.int + self.str + self.bool
