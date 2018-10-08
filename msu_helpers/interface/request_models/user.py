@@ -4,9 +4,10 @@ __all__ = ('UserSearchModel',)
 
 
 class UserSearchModel(Base):
-    regex = ('(?P<p_first_name>[\wА-Яа-я]+)'
-             '(/(?P<p_last_name>[\wА-Яа-я]+))?'
-             '(/(?P<p_group_code>[\wА-Яа-я\-\d]{0,10}))?')
+    regex = ('\?'
+             '(first_name=(?P<p_first_name>[\wА-Яа-я]+))?&?'
+             '(last_name=(?P<p_last_name>[\wА-Яа-я]+))?&?'
+             '(group_code=(?P<p_group_code>[\wА-Яа-я\-\d]{0,10}))?&?')
 
     __str_fields__ = ('p_first_name', 'p_last_name', 'p_group_code')
 
