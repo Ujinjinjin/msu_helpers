@@ -55,7 +55,8 @@ class Base:
         return self.int + self.str + self.bool
 
     def __getattr__(self, item):
-        if 'p_' + item in self.attributes:
+        attributes: tuple = self.int + self.str + self.bool
+        if 'p_' + item in attributes:
             return self.__getattribute__('p_' + item)
 
         raise AttributeError
