@@ -11,9 +11,9 @@ class Base:
     """
 
     regex: str = ""
-    __int_fields__: list = list()
-    __str_fields__: list = list()
-    __bool_fields__: list = list()
+    __int_fields__: tuple = tuple()
+    __str_fields__: tuple = tuple()
+    __bool_fields__: tuple = tuple()
 
     def __init__(self, value=''):
         param_match = re.match(self.regex, value)
@@ -24,15 +24,15 @@ class Base:
             self.parsed_data = dict()
 
     @property
-    def int(self) -> list:
+    def int(self) -> tuple:
         return self.__int_fields__
 
     @property
-    def str(self) -> list:
+    def str(self) -> tuple:
         return self.__str_fields__
 
     @property
-    def bool(self) -> list:
+    def bool(self) -> tuple:
         return self.__bool_fields__
 
     def validate(self):
