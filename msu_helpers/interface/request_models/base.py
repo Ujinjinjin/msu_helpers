@@ -59,7 +59,7 @@ class Base:
         return f'{self.parsed_data}'
 
     def __getattr__(self, item):
-        attr_list: list = self.int + self.str + self.bool
+        attr_list: tuple = self.int + self.str + self.bool
         if 'p_' + item in attr_list:
             return self.__getattribute__('p_' + item)
 
