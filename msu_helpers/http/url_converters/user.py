@@ -1,4 +1,4 @@
-from ...interface.models.user import *
+from ...interface.request_models.user import *
 
 __all__ = ('UserSearchModelConverter',)
 
