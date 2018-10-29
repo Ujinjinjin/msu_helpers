@@ -1,9 +1,7 @@
-import re
-
-__all__ = ('BaseQueryModel',)
+__all__ = ('BaseBodyModel',)
 
 
-class BaseQueryModel:
+class BaseBodyModel:
     """BaseQueryModel request model, containing logic shared between other request models."""
 
     __int_fields__: tuple = tuple()
