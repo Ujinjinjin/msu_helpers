@@ -13,7 +13,9 @@ BASIC_TYPES = ['list', 'str', 'dict', 'int', 'float', 'tuple', 'bool', 'NoneType
 
 class CommonResponse(Generic[T]):
 
-    def __init__(self, data: T, status: str = Status.SUCCESS, code: int = Code.SUCCESS, message: str = None):
+    def __init__(self, data: T, status: str = Status.SUCCESS, code: int = Code.SUCCESS, message: str = None,
+                 sql: str = None):
+        self.sql: str = sql
         self.status: str = status
         self.code: int = code
         self.message: str = message
@@ -36,6 +38,7 @@ class CommonResponse(Generic[T]):
             'code': self.code,
             'message': self.message,
             'data': data,
+            'sql': self.sql
         }
 
     @property
@@ -43,29 +46,29 @@ class CommonResponse(Generic[T]):
         return JsonResponse(self.serialized)
 
     @classmethod
-    def success(cls, data: T = None, code: int = Code.SUCCESS, message: str = None):
-        return CommonResponse(data, Status.SUCCESS, code, message).json_response
+    def success(cls, data: T = None, code: int = Code.SUCCESS, message: str = None, sql: str = None):
+        return cls(data, Status.SUCCESS, code, message, sql).json_response
 
     @classmethod
-    def created(cls, code: int = Code.CREATED, message: str = None):
-        return CommonResponse(None, Status.SUCCESS, code, message).json_response
+    def created(cls, code: int = Code.CREATED, message: str = None, sql: str = None):
+        return cls(None, Status.SUCCESS, code, message, sql).json_response
 
     @classmethod
-    def failed(cls, code: int = Code.FAILED, message: str = None):
-        return CommonResponse(None, Status.FAILED, code, message).json_response
+    def failed(cls, code: int = Code.FAILED, message: str = None, sql: str = None):
+        return cls(None, Status.FAILED, code, message, sql).json_response
 
     @classmethod
-    def not_found(cls, message: str = 'Not Found'):
-        return CommonResponse(None, Status.FAILED, Code.NOT_FOUND, message).json_response
+    def not_found(cls, message: str = 'Not Found', sql: str = None):
+        return cls(None, Status.FAILED, Code.NOT_FOUND, message, sql).json_response
 
     @classmethod
     def unauthorized(cls, message: str = 'Unauthorized'):
-        return CommonResponse(None, Status.FAILED, Code.UNAUTHORIZED, message).json_response
+        return cls(None, Status.FAILED, Code.UNAUTHORIZED, message).json_response
 
     @classmethod
     def forbidden(cls, message: str = 'Forbidden'):
-        return CommonResponse(None, Status.FAILED, Code.FORBIDDEN, message).json_response
+        return cls(None, Status.FAILED, Code.FORBIDDEN, message).json_response
 
     @classmethod
     def server_error(cls, message: str = 'Internal server error'):
-        return CommonResponse(None, Status.FAILED, Code.INTERNAL_SERVER_ERROR, message).json_response
+        return cls(None, Status.FAILED, Code.INTERNAL_SERVER_ERROR, message).json_response
